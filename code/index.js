@@ -52,7 +52,14 @@ exports.handler = (req, resp, context) => {
       console.log('start button is not displayed');
     }
     page.keyboard.press('Enter');
-    await page.waitForTimeout(30000);
+    await page.waitForTimeout(5000);
+    const selector = '#complete_progress > div';
+    await page.waitForFunction(
+      (selector) => document.querySelector(selector).innerHTML == '100%',
+      {},
+      selector
+    );
+    /*     await page.waitForTimeout(30000); */
     console.log('collect finish');
     return result
 
@@ -60,7 +67,7 @@ exports.handler = (req, resp, context) => {
 
   getRawBody(req, function (err, body) {
     itdog(req.queries.url)
-    .then(a => JSON.stringify(a))
-    .then(b => resp.send(b))
+      .then(a => JSON.stringify(a))
+      .then(b => resp.send(b))
   });
 }
