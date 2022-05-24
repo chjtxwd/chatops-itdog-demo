@@ -1,6 +1,8 @@
 var getRawBody = require('raw-body');
 var getFormBody = require('body/form');
 var body = require('body');
+var dfd = require("danfojs-node")
+df = new dfd.DataFrame()
 
 /*
 To enable the initializer feature (https://help.aliyun.com/document_detail/156876.html)
@@ -32,8 +34,11 @@ exports.handler = (req, resp, context) => {
         if (response.url().includes('thread')) {
           response.text()
             .then(c => {
-              result.push(c)
-            })
+              
+                c = JSON.parse(c)
+                delete c.region
+                for (let i in c) { c[i] = Array(c[i]) }
+                result.push(c)})
           console.log('end')
         }
 
@@ -56,9 +61,9 @@ exports.handler = (req, resp, context) => {
     const selector = '#complete_progress > div';
     await page.waitForFunction(
       (selector) => document.querySelector(selector).innerHTML == '100%',
-      {},
+      {timeout:300000},
       selector
-    );
+    ).catch(error=>console.log(error));
     /*     await page.waitForTimeout(30000); */
     console.log('collect finish');
     return result
@@ -67,7 +72,19 @@ exports.handler = (req, resp, context) => {
 
   getRawBody(req, function (err, body) {
     itdog(req.queries.url)
-      .then(a => JSON.stringify(a))
-      .then(b => resp.send(b))
+      .then(a => {
+        times = a.length
+        df = new dfd.DataFrame(a),
+        http_status = df['http_code'].valueCounts()
+        http_status = http_status.div(http_status.sum())
+        http_status = http_status.map((x)=>{
+         var str=Number(x*100).toFixed(2);
+         str+="%";
+         return str;
+     })
+        http_status = http_status.toString()
+        info = req.queries.url + ' tested '+times + ' times, http response status:' +"\n"+ http_status
+        resp.send(info)
+       })
   });
 }
