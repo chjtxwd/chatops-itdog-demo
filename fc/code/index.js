@@ -29,7 +29,7 @@ exports.handler = (req, resp, context) => {
     console.log(url);
     page.on('response',
       function (response) {
-        if (response.url().includes('thread')) {
+        if (response.url().includes('thread') & response.headers()["content-length"] !== '0' ) {
           response.text()
             .then(c => {
               result.push(c)
@@ -56,7 +56,7 @@ exports.handler = (req, resp, context) => {
     const selector = '#complete_progress > div';
     await page.waitForFunction(
       (selector) => document.querySelector(selector).innerHTML == '100%',
-      {},
+      {timeout: 300000},
       selector
     );
     /*     await page.waitForTimeout(30000); */
